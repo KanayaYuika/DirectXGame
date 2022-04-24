@@ -1,6 +1,7 @@
 ﻿#include "GameScene.h"
 #include "TextureManager.h"
 #include <cassert>
+#include <random>
 
 using namespace DirectX;
 
@@ -18,17 +19,32 @@ void GameScene::Initialize() {
 	audio_ = Audio::GetInstance();
 	debugText_ = DebugText::GetInstance();
 	textureHandle_ = TextureManager::Load("mario.jpg");
-	//sprite_ = Sprite::Create(textureHandle_, {100, 50});
+	sprite_ = Sprite::Create(textureHandle_, {100, 50});
 	model_ = Model::Create();
 	soundDataHandle_ = audio_->LoadWave("se_sad03.wav");
-	//X,Y,Z方向のスケーリングを設定
-	 worldTransform_.scale_={5.0f,5.0f,5.0f};
-	 //X,Y,Z軸周りの回転角を設定
-	 worldTransform_.rotation_ = {XM_PI / 4.0f, XM_PI / 4.0f, 0.0f};
-	//X,Y,Z軸周りの平行移動を設定
-	worldTransform_.translation_ = {10.0f, 10.0f, 10.0f};
+	 //乱数シード生成器
+	 std::random_device seed_gen;
+	 //メルセンヌ・ツイスター
+	 std::mt19937_64 engine(seed_gen());
+	 //乱数範囲（回転角用）
+	 std::uniform_real_distribution<float> rotDist(0.0f, XM_2PI);//(最小値、最大値)
+	 //乱数範囲（座標用）
+	 std::uniform_real_distribution<float> posDist(-10.0f, 10.0f);//(最小値、最大値)
+
 	//ワールドトランスフォームの初期化
 	worldTransform_.Initialize();
+	 //カメラ垂直方向視野角を設定
+	 viewProjection_.fovAngleY = XMConvertToRadians(50.0f);
+
+	 //アスペクト比
+	 viewProjection_.aspectRatio = 1.0f;
+
+	 //ニアクリップ距離を設定
+	 viewProjection_.nearZ = 38.0f;
+
+	 //ファークリップ距離を設定
+	 viewProjection_.farZ = 53.0f;
+
 	//ビュープロジェクションの初期化
 	viewProjection_.Initialize();
 	audio_->PlayWave(soundDataHandle_);
@@ -36,40 +52,28 @@ void GameScene::Initialize() {
 }
 
 void GameScene::Update() {
-	////スプライトの今の座標を取得
-	//XMFLOAT2 position = sprite_->GetPosition();
-	////座標を｛２，０｝移動
-	//position.x += 2.0f;
-	//position.y += 2.0f;
-	////移動した座標をスプライトに反映
-	//sprite_->SetPosition(position);
+
+	//スプライトの今の座標を取得
+	XMFLOAT2 position = sprite_->GetPosition();
+	//座標を{2,0}移動
+	position.x += 1.0f;
+	position.y += 1.0f;
+	//移動した座標をスプライトに反映
+	sprite_->SetPosition(position);
 
 	//スペースキーを押した瞬間
 	if (input_->TriggerKey(DIK_SPACE)) {
 		//音声停止
 		audio_->StopWave(voiceHandle_);
 	}
-	//デバッグテキストの表示
-	// debugText_->Print("*aiueo*", 50, 50, 1.0f);
+
 	//変数の値をインクリメント
-	//value_++;
+	value_++;
 	//値を含んだ文字列
-	/*std::string strDebug = std::string("Value:") + std::to_string(value_);
-	debugText_->Print(strDebug, 50, 50, 1.0f);*/
-	debugText_->SetPos(50, 70);
-	debugText_->Printf(
-	  "translation:(%f,%f,%f)", worldTransform_.translation_.x, worldTransform_.translation_.y,
-	  worldTransform_.translation_.z);
+	std::string strDebug = std::string("Value:") + std::to_string(value_);
+	//デバッグテキストの表示
+	debugText_->Print(strDebug, 50, 50, 1.0f);
 
-	debugText_->SetPos(50, 90);
-	debugText_->Printf(
-	  "rotation:(%f,%f,%f)", worldTransform_.rotation_.x, worldTransform_.rotation_.y,
-	  worldTransform_.rotation_.z);
-
-	debugText_->SetPos(50, 110);
-	debugText_->Printf(
-	  "scale:(%f,%f,%f)", worldTransform_.scale_.x, worldTransform_.scale_.y,
-	  worldTransform_.scale_.z);
 }
 
 
@@ -85,7 +89,7 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに背景スプライトの描画処理を追加できる
 	/// </summary>
-
+	
 	// スプライト描画後処理
 	Sprite::PostDraw();
 	// 深度バッファクリア
@@ -100,8 +104,9 @@ void GameScene::Draw() {
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
 	/// 3Dモデル描画
-	model_->Draw(worldTransform_, viewProjection_, textureHandle_);
-
+	 //単
+    model_->Draw(worldTransform_, viewProjection_, textureHandle_);
+	
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion
@@ -113,7 +118,7 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに前景スプライトの描画処理を追加できる
 	/// </summary>
-	//sprite_->Draw();
+	sprite_->Draw();
 
 	// デバッグテキストの描画
 	debugText_->DrawAll(commandList);

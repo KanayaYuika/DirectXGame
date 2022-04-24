@@ -52,14 +52,16 @@ class GameScene {
 	uint32_t soundDataHandle_ = 0;//1サウンドデータハンドル
 	uint32_t voiceHandle_ = 0;
 	int32_t value_ = 0;
+	//カメラ上方向の角度
+	float viewAngle = 0.0f;
 
 	/// <summary>
 	/// ゲームシーン用
 	/// </summary>
-	Sprite* sprite_ = nullptr;
+	Sprite* sprite_ = nullptr;//スプライト
 	Model* model_ = nullptr;
 	//ワールドトランスフォーム
-	WorldTransform worldTransform_;
+	WorldTransform worldTransform_;//配列で100個
 	//ビュープロジェクション
 	ViewProjection viewProjection_;
 };
