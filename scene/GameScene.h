@@ -61,7 +61,7 @@ class GameScene {
 	Sprite* sprite_ = nullptr;//スプライト
 	Model* model_ = nullptr;
 	//ワールドトランスフォーム
-	WorldTransform worldTransform_;//配列で100個
+	WorldTransform worldTransform_[100]; //配列で100個
 	//ビュープロジェクション
 	ViewProjection viewProjection_;
 };
