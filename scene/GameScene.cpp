@@ -7,7 +7,8 @@ using namespace DirectX;
 
 GameScene::GameScene() {}
 
-GameScene::~GameScene() { 
+GameScene::~GameScene() {
+	delete model_;
 }
 
 void GameScene::Initialize() {
@@ -17,11 +18,48 @@ void GameScene::Initialize() {
 	audio_ = Audio::GetInstance();
 	debugText_ = DebugText::GetInstance();
 	textureHandle_ = TextureManager::Load("mario.jpg");
+	model_ = Model::Create();
+	soundDataHandle_ = audio_->LoadWave("se_sad03.wav");
+
+	//X,Y,Z方向のスケーリングを設定
+	worldTransform_.scale_ = {5.0f, 5.0f, 5.0f};
+	 //X,Y,Z軸周りの回転角を設定
+	 worldTransform_.rotation_ = {XM_PI / 4.0f, XM_PI / 4.0f, 0.0f};
+	//X,Y,Z軸周りの平行移動を設定
+	 worldTransform_.translation_ = {10.0f, 10.0f, 10.0f};
+	//ワールドトランスフォームの初期化
+	worldTransform_.Initialize();
+
+	//カメラ垂直方向視野角を設定
+	viewProjection_.fovAngleY = XMConvertToRadians(50.0f);
+
+	//ビュープロジェクションの初期化
+	viewProjection_.Initialize();
 }
 
 void GameScene::Update() {
-}
 
+	//変数の値をインクリメント
+	value_++;
+	//値を含んだ文字列
+	std::string strDebug = std::string("Value:") + std::to_string(value_);
+	//テキストの表示
+	debugText_->SetPos(50, 70);
+	debugText_->Printf(
+	  "translation:(%f,%f,%f)", worldTransform_.translation_.x, worldTransform_.translation_.y,
+	  worldTransform_.translation_.z);
+
+	debugText_->SetPos(50, 90);
+	debugText_->Printf(
+	  "translation:(%f,%f,%f)", worldTransform_.rotation_.x, worldTransform_.rotation_.y,
+	  worldTransform_.rotation_.z);
+
+	debugText_->SetPos(50, 110);
+	debugText_->Printf(
+	  "translation:(%f,%f,%f)", worldTransform_.scale_.x, worldTransform_.scale_.y,
+	  worldTransform_.scale_.z);
+
+}
 
 void GameScene::Draw() {
 
@@ -35,7 +73,7 @@ void GameScene::Draw() {
 	/// <summary>
 	/// ここに背景スプライトの描画処理を追加できる
 	/// </summary>
-	
+
 	// スプライト描画後処理
 	Sprite::PostDraw();
 	// 深度バッファクリア
@@ -50,7 +88,9 @@ void GameScene::Draw() {
 	/// ここに3Dオブジェクトの描画処理を追加できる
 	/// </summary>
 	/// 3Dモデル描画
-	
+	//単
+	model_->Draw(worldTransform_, viewProjection_, textureHandle_);
+
 	// 3Dオブジェクト描画後処理
 	Model::PostDraw();
 #pragma endregion
